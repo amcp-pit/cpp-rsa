@@ -8,7 +8,7 @@ set(SOURCES biginteger.cpp)
 add_executable(decode decode.cpp ${SOURCES})
 
 add_executable(biginttest tests.cc biginteger.cpp)
-target_link_libraries(biginttest gtest gtest_main)
+target_link_libraries(biginttest gtest gtest_main pthread)
 
 add_custom_target(test ALL
     COMMENT "Testing biginteger..."
