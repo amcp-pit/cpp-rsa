@@ -20,7 +20,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Check
         run: |
-             !(grep -qwRE --include=*.{cc,cpp,h,hpp} '<vector>|<list>|<algorithm>|<stack>|<queue>|<deque>|<set>|<map>|<bits' ./* ) &&  (echo \"Check - OK\" )  || ( echo \"Forbiden STL containers\" && exit 9 )
+             !(grep -qwRE --include=*.{cpp,h,hpp} '<vector>|<list>|<algorithm>|<stack>|<queue>|<deque>|<set>|<map>|<bits' ./* ) &&  (echo \"Check - OK\" )  || ( echo \"Forbiden STL containers\" && exit 9 )
+      - name: Check code style
+        run: |
+             clang-format --version
+             find "." \( -name '*.cpp' -o -name '*.h*' \) -print0 | xargs -0 clang-format --dry-run --Werror --verbose
+      - name: Code linting
+        uses: amcp-pit/cpp-linter@v1
+        with:
+          extra-args-before: '-xc++'
+          extra-args: '-std=c++20'
+          after-args: '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
       - name: Build
         run: |
              cmake .
@@ -31,12 +41,10 @@ jobs:
         run: |
              valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./biginttest
              valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./decode tests/key1.txt tests/msg10.txt
-      - name: Code linting
-        uses: amcp-pit/cpp-linter@v1
-        with:
-          extra-args-before: '-xc++'
-          extra-args: '-std=c++20'
-          after-args: '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+      - name: Benchmark
+        run: |
+             timeout 60 ./benchmark
+             timeout 60 ./benchmark-fast
       - name: Checkout
         uses: actions/checkout@v4
       - name: CPD
